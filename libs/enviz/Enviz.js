@@ -21,54 +21,54 @@ THREE.Object3D.prototype.setAttribute = function (name, value) {
     object[chain[chain.length - 1]] = value;
 }
 
+function generatePlotArea() {
+    const xAxisMaterial = new THREE.MeshStandardMaterial({color: 0xff0000});
+    const yAxisMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
+    const zAxisMaterial = new THREE.MeshStandardMaterial({color: 0x0000ff});
+
+    const axisGeom = new THREE.CylinderGeometry(0.01, 0.01, 4, 4, 1, true);
+
+    const xAxis = new THREE.Mesh(axisGeom, xAxisMaterial);
+    xAxis.rotation.z = Math.PI / 2;
+    const yAxis = new THREE.Mesh(axisGeom, yAxisMaterial);
+    const zAxis = new THREE.Mesh(axisGeom, zAxisMaterial);
+    zAxis.rotation.x = Math.PI / 2;
+
+    const group = new THREE.Group();
+    group.add(xAxis);
+    group.add(yAxis);
+    group.add(zAxis);
+
+    return group;
+}
+
 
 class Enviz {
 
-    // Define global vars
-    renderer;
-    scene;
-    // player object: only manipulate this position & orientation, don't modify camera directly
-    player;
-    head;
 
-    camera;
+    constructor() {
+        // Define global vars
+        this.renderer;
+        this.scene;
+        // player object: only manipulate this position & orientation, don't modify camera directly
+        this.player;
+        this.head;
 
-    clock = new THREE.Clock();
+        this.camera;
 
-    initialPos = { x: 0, y: 0, z: 30 };
+        this.clock = new THREE.Clock();
 
-    vrHMD;
-    vrPlayerController;
-    options = {
-        scale: 1, // eye separation (IPD) scale
-        posScale: 10 // positional tracking scale
-    };
+        this.initialPos = { x: 0, y: 0, z: 30 };
 
-    onWindowResize() {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
-    }
+        this.vrHMD;
+        this.vrPlayerController;
+        this.options = {
+            scale: 1, // eye separation (IPD) scale
+            posScale: 10 // positional tracking scale
+        };
 
-    generatePlotArea() {
-        const xAxisMaterial = new THREE.MeshStandardMaterial({color: 0xff0000});
-        const yAxisMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
-        const zAxisMaterial = new THREE.MeshStandardMaterial({color: 0x0000ff});
+        this.initializeVR();
 
-        const axisGeom = new THREE.CylinderGeometry(0.01, 0.01, 4, 4, 1, true);
-
-        const xAxis = new THREE.Mesh(axisGeom, xAxisMaterial);
-        xAxis.rotation.z = Math.PI / 2;
-        const yAxis = new THREE.Mesh(axisGeom, yAxisMaterial);
-        const zAxis = new THREE.Mesh(axisGeom, zAxisMaterial);
-        zAxis.rotation.x = Math.PI / 2;
-
-        const group = new THREE.Group();
-        group.add(xAxis);
-        group.add(yAxis);
-        group.add(zAxis);
-
-        return group;
     }
 
     initializeVR() {
@@ -87,13 +87,21 @@ class Enviz {
 
 
         // create container for our 3D chart
-        chart3d = new THREE.Object3D();
-        chart3d.rotation.x = 0.6;
-        this.scene.add( chart3d );
+        // let chart3d = this.chart3d = new THREE.Object3D();
+        // chart3d.rotation.x = 0.6;
+        // this.scene.add( chart3d );
 
-        window.addEventListener( 'resize', onWindowResize, false );
+        window.addEventListener( 'resize', this.onWindowResize, false );
 
     }
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+
 
     loadData(file, func) {
         d3.json(file, func);
@@ -137,4 +145,4 @@ class Enviz {
     }
 }
 
-var enviz = new Enviz();
+// var enviz = new Enviz();
