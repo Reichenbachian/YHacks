@@ -338,7 +338,7 @@ class EnvizVR {
         let vector3 = EnvizVR.vector3;
         let vector4 = EnvizVR.vector4;
 
-        var color = new THREE.Color(0xffffff);
+        var color = new THREE.Color(0xFFDC00);
         var size = 1;
 
         var shapes = EnvizVR._getTubeShapes(size);
