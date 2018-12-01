@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<title>Scatter Plot</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/99/three.min.js"></script>
+		<script src="https://threejs.org/examples/js/controls/TrackballControls.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.js" ></script>
+		<script src="../../Datasets/test.json" ></script>
+	</head>
+	<body>
+    <style>
+      body {
+        color: #cccccc;
+        font-family:Monospace;
+        font-size:13px;
+        text-align:center;
+        background-color: #333;
+        margin: 0px;
+        overflow: hidden;
+      }
+      #info {
+        position: absolute;
+        top: 0px; width: 100%;
+        padding: 5px;
+      }
+      a {
+        color: #0080ff;
+      }
+      #bottom {
+        position: absolute;
+        font-size:8px;
+        bottom: 20px;
+        left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <div id="menu"></div>
+    <div id="bottom">zoom | pan | rotate</div>
+	<script src="main.js"></script>
+  </body>
+</html>
