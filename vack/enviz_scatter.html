@@ -94,50 +94,52 @@
         //
         // envizVR.scene.add(new THREE.Points(ptShape, ptMaterial));
 
+        envizVR.drawScatterSphere([[1, 1, 1], [1, 2, 3], [2, 2, 2]]);
+
         var data = [10, 8, 15, 16, 23, 42];
         var t = null;
 
 
         // create container for our 3D chart
-        chart3d = new THREE.Object3D();
+        // chart3d = new THREE.Object3D();
         // chart3d.rotation.x = 0.6;
 
-        // use D3 to set up 3D bars
-        var barGraph = d3.select(chart3d)
-            .selectAll()
-            .data(data);
-
-        barGraph.enter().append(function () {
-            var material = new THREE.MeshLambertMaterial({
-                color: 0x4682B4, shading: THREE.FlatShading, vertexColors: THREE.VertexColors
-            });
-            return new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), material);
-        })
-            // .attr("geometry.parameters.height", function (d, i) {
-            //     console.log(this, d, i);
-            //     return d;
-            // })
-            // .attr("geometry.verticesNeedUpdate", () => true)
-            .attr("position.x", function (d, i) {
-                return i;
-            })
-            .attr("position.y", function (d, i) {
-                return 0;
-            })
-            .attr("scale.y", function (d, i) {
-                return d / 2;
-            })
-            .attr("material.color.r", function (d, i) {
-                return i / 6.0 + 0.1;
-            })
-            .attr("material.color.g", function (d, i) {
-                return i / 3.0 + 0.1;
-            })
-            .attr("material.color.b", function (d, i) {
-                return i / 2.0 + 0.1;
-            })
-
-        envizVR.scene.add(chart3d);
+        // // use D3 to set up 3D bars
+        // var barGraph = d3.select(chart3d)
+        //     .selectAll()
+        //     .data(data);
+        //
+        // barGraph.enter().append(function () {
+        //     var material = new THREE.MeshLambertMaterial({
+        //         color: 0x4682B4, shading: THREE.FlatShading, vertexColors: THREE.VertexColors
+        //     });
+        //     return new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), material);
+        // })
+        //     // .attr("geometry.parameters.height", function (d, i) {
+        //     //     console.log(this, d, i);
+        //     //     return d;
+        //     // })
+        //     // .attr("geometry.verticesNeedUpdate", () => true)
+        //     .attr("position.x", function (d, i) {
+        //         return i;
+        //     })
+        //     .attr("position.y", function (d, i) {
+        //         return 0;
+        //     })
+        //     .attr("scale.y", function (d, i) {
+        //         return d / 2;
+        //     })
+        //     .attr("material.color.r", function (d, i) {
+        //         return i / 6.0 + 0.1;
+        //     })
+        //     .attr("material.color.g", function (d, i) {
+        //         return i / 3.0 + 0.1;
+        //     })
+        //     .attr("material.color.b", function (d, i) {
+        //         return i / 2.0 + 0.1;
+        //     })
+        //
+        // envizVR.scene.add(chart3d);
 
     }
 

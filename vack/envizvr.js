@@ -54,8 +54,8 @@ class EnvizVR {
         // // floor.receiveShadow = true;
         // // scene.add( floor );
 
-        const plotArea = this._generatePlotArea();
-        scene.add(plotArea);
+        // const plotArea = this._generatePlotArea();
+        // scene.add(plotArea);
 
 
         scene.add(new THREE.HemisphereLight(0x888877, 0x777788));
@@ -266,18 +266,18 @@ class EnvizVR {
 
         this.updateGeometry(count, this.line.geometry.drawRange.count);
 
-        for (var i = 0; i < 5; i++) {
-            var x = d3.select(chart3d).selectAll()[0][i]
-                .material
-                .color;
-            if (x.goingUp) {
-                if (x.r > 1) x.goingUp = 0;
-                x.r += .005;
-            } else {
-                if (x.r < 0) x.goingUp = 1;
-                x.r -= .005;
-            }
-        }
+        // for (var i = 0; i < 5; i++) {
+        //     var x = d3.select(chart3d).selectAll()[0][i]
+        //         .material
+        //         .color;
+        //     if (x.goingUp) {
+        //         if (x.r > 1) x.goingUp = 0;
+        //         x.r += .005;
+        //     } else {
+        //         if (x.r < 0) x.goingUp = 1;
+        //         x.r -= .005;
+        //     }
+        // }
         // d3.select(chart3d).selectAll()
         //     .attr("scale.x", function(d, i) {
         //         console.log(d);
@@ -285,7 +285,7 @@ class EnvizVR {
         //         return d;
         //     });
         // requestAnimationFrame( animate );
-        chart3d.rotation.y += 0.01;
+        // chart3d.rotation.y += 0.01;
 
         this.renderer.render(this.scene, this.camera);
 
@@ -317,7 +317,7 @@ class EnvizVR {
             point1.setFromMatrixPosition(matrix);
             matrix1.lookAt(point2, point1, EnvizVR.up);
 
-            console.log(controller.userData);
+            // console.log(controller.userData);
             if (controller.userData.isSelecting === true) {
 
                 this.stroke(controller, point1, point2, matrix1, matrix2);
@@ -456,21 +456,27 @@ class EnvizVR {
      * @param points [number, number, number][]
      */
     drawScatterSphere(points) {
-        const ptShape = new THREE.SphereGeometry(0.05);
-        const ptMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 0.02});
+        const plot = this._generatePlotArea();
 
-        for (let [x, y, z] in points) {
+        const ptShape = new THREE.SphereGeometry(0.02);
+        const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
+
+        for (let [x, y, z] of points) {
             if (x == null || y == null || z == null) {
                 continue;
             }
 
-            let mesh = new THREE.Point(ptShape, ptMaterial);
-            this.scene.add(mesh);
+            let mesh = new THREE.Mesh(ptShape, ptMaterial);
             mesh.position.x = x;
             mesh.position.y = y;
             mesh.position.z = z;
+            plot.add(mesh);
             // ptShape.vertices.push(new THREE.Vector3(x, y, z));
+
+            console.log(mesh);
         }
+
+        this.scene.add(plot);
     }
 }
 
