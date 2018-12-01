@@ -81,7 +81,7 @@ class EnvizVR {
         container.appendChild(renderer.domElement);
 
 
-        this._setupControllers();
+        this.controllers = new EnvizControllers(renderer, scene);
 
         body.appendChild(WEBVR.createButton(renderer));
 
@@ -120,65 +120,6 @@ class EnvizVR {
         plotArea.add(zAxis);
 
         return plotArea;
-    }
-
-    _setupControllers() {
-        // controllers
-
-        function onSelectStart() {
-
-            this.userData.isSelecting = true;
-
-        }
-
-        function onSelectEnd() {
-
-            this.userData.isSelecting = false;
-
-        }
-
-        const controller1 = this.controller1 = this.renderer.vr.getController(0);
-        controller1.addEventListener('selectstart', onSelectStart);
-        controller1.addEventListener('selectend', onSelectEnd);
-        controller1.userData.points = [new THREE.Vector3(), new THREE.Vector3()];
-        controller1.userData.matrices = [new THREE.Matrix4(), new THREE.Matrix4()];
-        this.scene.add(controller1);
-
-        const controller2 = this.controller2 = this.renderer.vr.getController(1);
-        controller2.addEventListener('selectstart', onSelectStart);
-        controller2.addEventListener('selectend', onSelectEnd);
-        controller2.userData.points = [new THREE.Vector3(), new THREE.Vector3()];
-        controller2.userData.matrices = [new THREE.Matrix4(), new THREE.Matrix4()];
-        this.scene.add(controller2);
-
-        var loader = new THREE.OBJLoader();
-        loader.setPath('models/obj/vive-controller/');
-        loader.load('vr_controller_vive_1_5.obj', function (object) {
-
-            var loader = new THREE.TextureLoader();
-            loader.setPath('models/obj/vive-controller/');
-
-            var controller = object.children[0];
-            controller.material.map = loader.load('onepointfive_texture.png');
-            controller.material.specularMap = loader.load('onepointfive_spec.png');
-            controller.castShadow = true;
-            controller.receiveShadow = true;
-
-            // var pivot = new THREE.Group();
-            // var pivot = new THREE.Mesh( new THREE.BoxBufferGeometry( 0.01, 0.01, 0.01 ) );
-            var pivot = new THREE.Mesh(new THREE.IcosahedronBufferGeometry(0.01, 2));
-            pivot.name = 'pivot';
-            pivot.position.y = -0.016;
-            pivot.position.z = -0.043;
-            pivot.rotation.x = Math.PI / 5.5;
-            controller.add(pivot);
-
-            controller1.add(controller.clone());
-
-            pivot.material = pivot.material.clone();
-            controller2.add(controller.clone());
-
-        });
     }
 
     _initGeometry() {
@@ -225,29 +166,6 @@ class EnvizVR {
         line.castShadow = true;
         line.receiveShadow = true;
         this.scene.add(line);
-
-        // Shapes
-        this.shapes = {};
-        this.shapes['tube'] = EnvizVR._getTubeShapes(1.0);
-    }
-
-    static _getTubeShapes(size) {
-
-        var PI2 = Math.PI * 2;
-
-        var sides = 10;
-        var array = [];
-        var radius = 0.01 * size;
-
-        for (var i = 0; i < sides; i++) {
-
-            var angle = (i / sides) * PI2;
-            array.push(new THREE.Vector3(Math.sin(angle) * radius, Math.cos(angle) * radius, 0));
-
-        }
-
-        return array;
-
     }
 
     animate() {
@@ -259,8 +177,7 @@ class EnvizVR {
 
         var count = this.line.geometry.drawRange.count;
 
-        this.handleController(this.controller1);
-        this.handleController(this.controller2);
+        this.controllers.render(this.line);
 
         // camera.fov = Math.sin(Date.now() / 500) * 20 + 40;
 
@@ -298,6 +215,178 @@ class EnvizVR {
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
+    }
+
+
+    updateGeometry(start, end) {
+
+        if (start === end) return;
+
+        var offset = start * 3;
+        var count = (end - start) * 3;
+
+        var geometry = this.line.geometry;
+        var attributes = geometry.attributes;
+
+        attributes.position.updateRange.offset = offset;
+        attributes.position.updateRange.count = count;
+        attributes.position.needsUpdate = true;
+
+        attributes.normal.updateRange.offset = offset;
+        attributes.normal.updateRange.count = count;
+        attributes.normal.needsUpdate = true;
+
+        attributes.color.updateRange.offset = offset;
+        attributes.color.updateRange.count = count;
+        attributes.color.needsUpdate = true;
+
+    }
+
+
+    /**
+     *
+     * @param points [number, number, number][]
+     */
+    drawScatterSphere(points) {
+        const plot = this._generatePlotArea();
+
+        const ptShape = new THREE.SphereGeometry(0.02);
+        const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
+
+        for (let [x, y, z] of points) {
+            if (x == null || y == null || z == null) {
+                continue;
+            }
+
+            let mesh = new THREE.Mesh(ptShape, ptMaterial);
+            mesh.position.x = x;
+            mesh.position.y = y;
+            mesh.position.z = z;
+            plot.add(mesh);
+            // ptShape.vertices.push(new THREE.Vector3(x, y, z));
+
+            console.log(mesh);
+        }
+
+        this.scene.add(plot);
+    }
+}
+
+EnvizVR.vector1 = new THREE.Vector3();
+EnvizVR.vector2 = new THREE.Vector3();
+EnvizVR.vector3 = new THREE.Vector3();
+EnvizVR.vector4 = new THREE.Vector3();
+
+EnvizVR.up = new THREE.Vector3(0, 1, 0);
+
+
+class EnvizControllers {
+    /**
+     *
+     * @param renderer
+     */
+    constructor(renderer, scene) {
+        this.renderer = renderer;
+        this.scene = scene;
+
+        // controllers
+
+        function onSelectStart() {
+
+            this.userData.isSelecting = true;
+
+        }
+
+        function onSelectEnd() {
+
+            this.userData.isSelecting = false;
+
+        }
+
+        const controller1 = this.controller1 = this.renderer.vr.getController(0);
+        controller1.addEventListener('selectstart', onSelectStart);
+        controller1.addEventListener('selectend', onSelectEnd);
+        controller1.userData.points = [new THREE.Vector3(), new THREE.Vector3()];
+        controller1.userData.matrices = [new THREE.Matrix4(), new THREE.Matrix4()];
+        this.scene.add(controller1);
+
+        const controller2 = this.controller2 = this.renderer.vr.getController(1);
+        controller2.addEventListener('selectstart', onSelectStart);
+        controller2.addEventListener('selectend', onSelectEnd);
+        controller2.userData.points = [new THREE.Vector3(), new THREE.Vector3()];
+        controller2.userData.matrices = [new THREE.Matrix4(), new THREE.Matrix4()];
+        this.scene.add(controller2);
+
+        var loader = new THREE.OBJLoader();
+        loader.setPath('models/oculus_cv1_controller_left/');
+        loader.load('oculus_cv1_controller_left.obj', function (object) {
+
+            var loader = new THREE.TextureLoader();
+            loader.setPath('models/oculus_cv1_controller_left/');
+
+            var controller = object.children[0];
+            controller.material.map = loader.load('external_controller01_col.png');
+            controller.material.specularMap = loader.load('external_controller01_spec.png');
+            controller.castShadow = true;
+            controller.receiveShadow = true;
+
+            // var pivot = new THREE.Group();
+            // var pivot = new THREE.Mesh( new THREE.BoxBufferGeometry( 0.01, 0.01, 0.01 ) );
+            var pivot = new THREE.Mesh(new THREE.IcosahedronBufferGeometry(0.01, 2));
+            pivot.name = 'pivot';
+            // pivot.position.y = -0.016;
+            // pivot.position.z = -0.043;
+            // pivot.rotation.x = Math.PI / 5.5;
+            controller.add(pivot);
+
+            controller1.add(controller.clone());
+
+            // pivot.material = pivot.material.clone();
+            // controller2.add(controller.clone());
+
+        });
+
+
+        var loader = new THREE.OBJLoader();
+        loader.setPath('models/oculus_cv1_controller_right/');
+        loader.load('oculus_cv1_controller_right.obj', function (object) {
+
+            var loader = new THREE.TextureLoader();
+            loader.setPath('models/oculus_cv1_controller_right/');
+
+            var controller = object.children[0];
+            controller.material.map = loader.load('external_controller01_col.png');
+            controller.material.specularMap = loader.load('external_controller01_spec.png');
+            controller.castShadow = true;
+            controller.receiveShadow = true;
+
+            // var pivot = new THREE.Group();
+            // var pivot = new THREE.Mesh( new THREE.BoxBufferGeometry( 0.01, 0.01, 0.01 ) );
+            var pivot = new THREE.Mesh(new THREE.IcosahedronBufferGeometry(0.01, 2));
+            pivot.name = 'pivot';
+            // pivot.position.y = -0.016;
+            // pivot.position.z = -0.043;
+            // pivot.rotation.x = Math.PI / 5.5;
+            controller.add(pivot);
+
+            // controller1.add(controller.clone());
+
+            pivot.material = pivot.material.clone();
+            controller2.add(controller.clone());
+
+        });
+
+
+        // Shapes
+        this.shapes = {};
+        this.shapes['tube'] = this._getTubeShapes(1.0);
+    }
+
+    render(line) {
+        this.line = line;
+
+        this.handleController(this.controller1);
+        this.handleController(this.controller2);
     }
 
     handleController(controller) {
@@ -341,7 +430,7 @@ class EnvizVR {
         var color = new THREE.Color(0xFFDC00);
         var size = 1;
 
-        var shapes = EnvizVR._getTubeShapes(size);
+        var shapes = this._getTubeShapes(size);
 
         var geometry = this.line.geometry;
         var attributes = geometry.attributes;
@@ -426,66 +515,22 @@ class EnvizVR {
 
     }
 
-    updateGeometry(start, end) {
+    _getTubeShapes(size) {
 
-        if (start === end) return;
+        var PI2 = Math.PI * 2;
 
-        var offset = start * 3;
-        var count = (end - start) * 3;
+        var sides = 10;
+        var array = [];
+        var radius = 0.01 * size;
 
-        var geometry = this.line.geometry;
-        var attributes = geometry.attributes;
+        for (var i = 0; i < sides; i++) {
 
-        attributes.position.updateRange.offset = offset;
-        attributes.position.updateRange.count = count;
-        attributes.position.needsUpdate = true;
+            var angle = (i / sides) * PI2;
+            array.push(new THREE.Vector3(Math.sin(angle) * radius, Math.cos(angle) * radius, 0));
 
-        attributes.normal.updateRange.offset = offset;
-        attributes.normal.updateRange.count = count;
-        attributes.normal.needsUpdate = true;
-
-        attributes.color.updateRange.offset = offset;
-        attributes.color.updateRange.count = count;
-        attributes.color.needsUpdate = true;
-
-    }
-
-
-    /**
-     *
-     * @param points [number, number, number][]
-     */
-    drawScatterSphere(points) {
-        const plot = this._generatePlotArea();
-
-        const ptShape = new THREE.SphereGeometry(0.02);
-        const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
-
-        for (let [x, y, z] of points) {
-            if (x == null || y == null || z == null) {
-                continue;
-            }
-
-            let mesh = new THREE.Mesh(ptShape, ptMaterial);
-            mesh.position.x = x;
-            mesh.position.y = y;
-            mesh.position.z = z;
-            plot.add(mesh);
-            // ptShape.vertices.push(new THREE.Vector3(x, y, z));
-
-            console.log(mesh);
         }
 
-        this.scene.add(plot);
+        return array;
+
     }
 }
-
-EnvizVR.vector1 = new THREE.Vector3();
-EnvizVR.vector2 = new THREE.Vector3();
-EnvizVR.vector3 = new THREE.Vector3();
-EnvizVR.vector4 = new THREE.Vector3();
-
-EnvizVR.up = new THREE.Vector3(0, 1, 0);
-
-
-
