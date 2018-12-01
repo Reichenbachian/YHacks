@@ -279,23 +279,8 @@ THREE.Object3D.prototype.setAttribute = function (name, value) {
 
         scene.add(new THREE.Points(ptShape, ptMaterial));
 
-
-        const xAxisMaterial = new THREE.MeshStandardMaterial({color: 0xff0000});
-        const yAxisMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
-        const zAxisMaterial = new THREE.MeshStandardMaterial({color: 0x0000ff});
-
-        const axisGeom = new THREE.CylinderGeometry(0.01, 0.01, 10, 10, 1, true);
-
-        const xAxis = new THREE.Mesh(axisGeom, xAxisMaterial);
-        xAxis.rotation.z = Math.PI / 2;
-        const yAxis = new THREE.Mesh(axisGeom, yAxisMaterial);
-        const zAxis = new THREE.Mesh(axisGeom, zAxisMaterial);
-        zAxis.rotation.x = Math.PI / 2;
-
-        scene.add(xAxis);
-        scene.add(yAxis);
-        scene.add(zAxis);
-
+        const axes = enviz.generateAxes();
+        scene.add(axes);
 
         var data = [10, 8, 15, 16, 23, 42];
         var t = null;
