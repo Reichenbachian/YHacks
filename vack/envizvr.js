@@ -449,6 +449,29 @@ class EnvizVR {
         attributes.color.needsUpdate = true;
 
     }
+
+
+    /**
+     *
+     * @param points [number, number, number][]
+     */
+    drawScatterSphere(points) {
+        const ptShape = new THREE.SphereGeometry(0.05);
+        const ptMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 0.02});
+
+        for (let [x, y, z] in points) {
+            if (x == null || y == null || z == null) {
+                continue;
+            }
+
+            let mesh = new THREE.Point(ptShape, ptMaterial);
+            this.scene.add(mesh);
+            mesh.position.x = x;
+            mesh.position.y = y;
+            mesh.position.z = z;
+            // ptShape.vertices.push(new THREE.Vector3(x, y, z));
+        }
+    }
 }
 
 EnvizVR.vector1 = new THREE.Vector3();
@@ -457,4 +480,6 @@ EnvizVR.vector3 = new THREE.Vector3();
 EnvizVR.vector4 = new THREE.Vector3();
 
 EnvizVR.up = new THREE.Vector3(0, 1, 0);
+
+
 

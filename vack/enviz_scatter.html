@@ -61,38 +61,38 @@
 
 
         // scene.add(sphere);
-        const ptShape = new THREE.Geometry();
-        const ptMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 0.02});
-
-        let maxX, maxY, maxZ;
-        for (const [x, y, z] in gsachs) {
-            if (x == null || y == null || z == null) {
-                continue;
-            }
-
-            maxX = Math.max(x, maxX);
-            maxY = Math.max(y, maxY);
-            maxZ = Math.max(z, maxZ);
-        }
-
-        for (let [x, y, z] in gsachs) {
-            if (x == null || y == null || z == null) {
-                continue;
-            }
-
-            x = Math.random();
-            y = Math.random();
-            z = Math.random() * 10;
-
-            // let mesh = new THREE.Point(ptShape, ptMaterial);
-            // scene.add(mesh);
-            // mesh.position.x = x;
-            // mesh.position.y = y;
-            // mesh.position.z = z;
-            ptShape.vertices.push(new THREE.Vector3(x, y, z));
-        }
-
-        envizVR.scene.add(new THREE.Points(ptShape, ptMaterial));
+        // const ptShape = new THREE.Geometry();
+        // const ptMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 0.02});
+        //
+        // let maxX, maxY, maxZ;
+        // for (const [x, y, z] in gsachs) {
+        //     if (x == null || y == null || z == null) {
+        //         continue;
+        //     }
+        //
+        //     maxX = Math.max(x, maxX);
+        //     maxY = Math.max(y, maxY);
+        //     maxZ = Math.max(z, maxZ);
+        // }
+        //
+        // for (let [x, y, z] in gsachs) {
+        //     if (x == null || y == null || z == null) {
+        //         continue;
+        //     }
+        //
+        //     x = Math.random();
+        //     y = Math.random();
+        //     z = Math.random() * 10;
+        //
+        //     // let mesh = new THREE.Point(ptShape, ptMaterial);
+        //     // scene.add(mesh);
+        //     // mesh.position.x = x;
+        //     // mesh.position.y = y;
+        //     // mesh.position.z = z;
+        //     ptShape.vertices.push(new THREE.Vector3(x, y, z));
+        // }
+        //
+        // envizVR.scene.add(new THREE.Points(ptShape, ptMaterial));
 
         var data = [10, 8, 15, 16, 23, 42];
         var t = null;
