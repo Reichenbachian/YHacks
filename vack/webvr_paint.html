@@ -279,32 +279,16 @@ THREE.Object3D.prototype.setAttribute = function (name, value) {
 
         scene.add(new THREE.Points(ptShape, ptMaterial));
 
+        const axes = enviz.generateAxes();
+        scene.add(axes);
 
-        const xAxisMaterial = new THREE.MeshStandardMaterial({color: 0xff0000});
-        const yAxisMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
-        const zAxisMaterial = new THREE.MeshStandardMaterial({color: 0x0000ff});
-
-        const axisGeom = new THREE.CylinderGeometry(0.01, 0.01, 10, 10, 1, true);
-
-        const xAxis = new THREE.Mesh(axisGeom, xAxisMaterial);
-        xAxis.rotation.z = Math.PI / 2;
-        const yAxis = new THREE.Mesh(axisGeom, yAxisMaterial);
-        const zAxis = new THREE.Mesh(axisGeom, zAxisMaterial);
-        zAxis.rotation.x = Math.PI / 2;
-
-        scene.add(xAxis);
-        scene.add(yAxis);
-        scene.add(zAxis);
-
-
-        var data = [4, 8, 15, 16, 23, 42];
+        var data = [10, 8, 15, 16, 23, 42];
         var t = null;
 
 
         // create container for our 3D chart
         chart3d = new THREE.Object3D();
         // chart3d.rotation.x = 0.6;
-        scene.add(chart3d);
 
         // use D3 to set up 3D bars
         var barGraph = d3.select(chart3d)
@@ -325,9 +309,9 @@ THREE.Object3D.prototype.setAttribute = function (name, value) {
             .attr("position.x", function (d, i) {
                 return i;
             })
-            // .attr("position.y", function (d, i) {
-            //     return d / 20;
-            // })
+            .attr("position.y", function (d, i) {
+                return 0;
+            })
             .attr("scale.y", function (d, i) {
                 return d / 2;
             })
@@ -341,7 +325,7 @@ THREE.Object3D.prototype.setAttribute = function (name, value) {
                 return i / 2.0 + 0.1;
             })
 
-        //
+        scene.add(chart3d);
 
         window.addEventListener('resize', onWindowResize, false);
 
@@ -600,7 +584,11 @@ THREE.Object3D.prototype.setAttribute = function (name, value) {
             }
         }
         // d3.select(chart3d).selectAll()
-        // 	.attr("material.color.r", function(d, i) {console.log(d); v = d; return d.material.color.r+0.1})
+        //     .attr("scale.x", function(d, i) {
+        //         console.log(d);
+        //         // return d.scale.x += 0.01;
+        //         return d;
+        //     });
         // requestAnimationFrame( animate );
         chart3d.rotation.y += 0.01;
 
