@@ -1,18 +1,39 @@
 function Enviz() {
-	var renderer;
-	var scene;
+	// Setup THREE to be treated as a DOM object
+	THREE.Object3D.prototype.appendChild = function (c) { this.add(c); return c; };
+	THREE.Object3D.prototype.querySelectorAll = function () {return this.children; };
+	THREE.Object3D.prototype.insertBefore = function (newNode, referenceNode) {
+		t = newNode;
+		if (referenceNode == null) {
+			console.log(newNode, referenceNode);
+			this.add(newNode);
+		} else {
+			console.log(newNode, referenceNode);
+			referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+		}
+	};
+	// this one is to use D3's .attr() on THREE's objects
+	THREE.Object3D.prototype.setAttribute = function (name, value) {
+	    var chain = name.split('.');
+	    var object = this;
+	    for (var i = 0; i < chain.length - 1; i++) {
+	        object = object[chain[i]];
+	    }
+	    object[chain[chain.length - 1]] = value;
+	}
 
+	// Define global vars
+	var renderer, scene;
 	// player object: only manipulate this position & orientation, don't modify camera directly
 	var player, head;
 	var initialPos = { x: 0, y: 0, z: 30 };
 
-	var vrHMD
-;	var vrPlayerController;
-
+	var vrHMD, vrPlayerController;
 	var options = {
 		scale: 1, // eye separation (IPD) scale
 		posScale: 10 // positional tracking scale
 	};
+
 
 	function onWindowResize() {
 	    camera.aspect = window.innerWidth / window.innerHeight;
@@ -39,27 +60,16 @@ function Enviz() {
 	    chart3d = new THREE.Object3D();
 		chart3d.rotation.x = 0.6;
 		scene.add( chart3d );
-	    
-	    // use D3 to set up 3D bars
-	    var barGraph = d3.select( chart3d )
-	        .selectAll()
-	        .data(data);
-
-	    barGraph.enter().append(function() {
-	    		var material = new THREE.MeshLambertMaterial( {
-	        		color: 0x4682B4, shading: THREE.FlatShading, vertexColors: THREE.VertexColors } );
-	    		return new THREE.Mesh( geometry, material );
-	    	}).attr("position.x", function(d, i) { return 30 * i; })
-	         .attr("position.y", function(d, i) { return d; })
-	         .attr("material.color.r", function(d, i) { return i/6.0+0.1; })
-	         .attr("material.color.g", function(d, i) { return i/3.0+0.1; })
-	         .attr("material.color.b", function(d, i) { return i/2.0+0.1; })
 	        
 	    window.addEventListener( 'resize', onWindowResize, false );
 
 	}
 	function loadData(file, func) {
-		d3.json("../../../Datasets/test.json", func);
+		d3.json(file, func);
+	}
+
+	function scatterPlot(columnX, columnY, columnZ, legend=true) {
+
 	}
 
 	function load( error ) {
@@ -81,8 +91,6 @@ function Enviz() {
 	}
 
 	function update() {
-		// player.position = ...
-
 		// updates player head position and orientation based on HMD
 		vrPlayerController.update( dt );
 	}
@@ -93,6 +101,7 @@ function Enviz() {
 	Enviz.prototype.initializeVR = initializeVR;
 	Enviz.prototype.loadData = loadData;
 	Enviz.prototype.update = update;
+	Enviz.prototype.scatterPlot = scatterPlot;
 }
 
 var enviz = new Enviz();
