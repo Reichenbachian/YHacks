@@ -48,14 +48,10 @@ text = generateText("Loading....", 40, -1.4, 0, -2.2);
 legend = generateText("Red Axis: Financial Return; Green Axis: Growth Score; Blue Axis: Integrated Score", 40, -1.4, -0.1, -2.2);
 scene = envizVR.scene;
 renderer = envizVR.renderer;
+renderer.shadowMapEnabled = true;
 camera = envizVR.camera;
 scene.add(text);
 scene.add(legend);
-
-// var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-// var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-// var cube = new THREE.Mesh( geometry, material );
-// scene.add( cube );
 
 // create container for our 3D chart
 

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+        <meta name="description" content="HTML5 Audio Spectrum Visualizer">
+        <title>Music Demo</title>
+        <link type="text/css" rel="stylesheet" href="style/flash.min.css">
+        <link type="text/css" rel="stylesheet" href="style/style.css">
+    </head>
+    <body>
+        <div id="wrapper">
+            <!-- the container to display corresponding information -->
+            <div id="stats"></div>
+            <div id="info" style="position: absolute; color: #FFFFFF; text-align: center; width: 100%;">Music Demo</div>
+            <!-- the container to render the scene -->
+            <div id="visualizer_container"></div>
+        </div>
+        <script type="text/javascript" src="deps/js/pace.min.js"></script>
+        <script type="text/javascript" src="../../libs/three.min.js"></script>
+        <script type="text/javascript" src="deps/js/OrbitControls.js"></script>
+		<script src="//mrdoob.github.io/stats.js/build/stats.min.js"></script>
+        <script type="text/javascript" src="deps/js/dat.gui.min.js"></script>
+        <script src="../../vack/envizvr.js"></script>
+		<script src="../../vack/js/vr/WebVR.js"></script>
+		<script src="../../vack/js/loaders/OBJLoader.js"></script>
+		<script src="../../vack/data/gsachs.js"></script>
+		<script src="../../vack/d3hack.js"></script>
+		<script src="../../vack/three-text2d.min.js"></script>
+		<script src="../../vack/envizvr.js"></script>
+        <script type="text/javascript" src="deps/js/app.js"></script>
+    </body>
+</html>
