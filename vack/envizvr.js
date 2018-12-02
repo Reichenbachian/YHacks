@@ -575,7 +575,10 @@ class EnvizControllers {
         controller2.userData.matrices = [new THREE.Matrix4(), new THREE.Matrix4()];
         this.scene.add(controller2);
 
-        var loader = new THREE.OBJLoader();
+        let loader;
+
+        // left
+        loader = new THREE.OBJLoader();
         loader.setPath('/vack/models/oculus_cv1_controller_left/');
         loader.load('oculus_cv1_controller_left.obj', function (object) {
 
@@ -604,8 +607,8 @@ class EnvizControllers {
 
         });
 
-
-        var loader = new THREE.OBJLoader();
+        // right
+        loader = new THREE.OBJLoader();
         loader.setPath('/vack/models/oculus_cv1_controller_right/');
         loader.load('oculus_cv1_controller_right.obj', function (object) {
 
