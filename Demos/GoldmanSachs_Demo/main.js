@@ -62,7 +62,8 @@ function transition() {
     document.getElementById("bottom").innerHTML = data[0][timeStep][0];
     timeStep %= 119;
     d3chart.transition()
-      .duration(400)
+      .ease("easeCircle")
+      .duration(800)
       .attrTween("position.x", function(d, i) {
         return d3.interpolateNumber(2.5*d[timeStep][1], 2.5*d[timeStep+1][1]);
       })
@@ -76,10 +77,11 @@ function addData(data) {
     if (created) return;
     created = 1;
     chart3d = new THREE.Object3D();
-    chart3d.position.x = 1;
+    chart3d.position.z = -2.2;
+    chart3d.position.x = -1.4;
     envizVR.scene.add( chart3d );
 
-    var geometry = new THREE.SphereGeometry( 0.1, 6, 6 );
+    var geometry = new THREE.SphereGeometry( 0.03, 6, 6 );
     
     // use D3 to set up 3D bars
     d3chart = d3.select( chart3d )
@@ -108,7 +110,6 @@ function addData(data) {
                                     })
 
     transition()
-    console.log("HERE");
 }
 
 
@@ -135,17 +136,16 @@ d3.json("../../Datasets/GoldmanProcessed.json", function(error, d) {
 
 function animate() {
     
-    requestAnimationFrame( animate );
-    
-    // chart3d.rotation.y += 0.01;
-    
+    requestAnimationFrame( animate );    
     renderer.render( scene, camera );
 }
 
 
 animate();
 
-slicesGraphs(slices([[]], [[]])).forEach((gr, i) => {
-    gr.position.z = 3;
+slicesGraphs(slices([[]], [[]])).forEach((gra, i) => {
+    const gr = gra.getPlot();
+    envizVR.renders.push(gra);
+    gr.position.z = i * 2 - 2;
     envizVR.scene.add(gr);
 });
