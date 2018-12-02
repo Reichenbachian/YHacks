@@ -170,7 +170,7 @@ Visualizer.prototype = {
                     //meter.scale.set(1, value < 1 ? 1 : value, 1);//another way to scale
                     meter.geometry.computeBoundingBox();
                     height = (meter.geometry.boundingBox.max.y - meter.geometry.boundingBox.min.y) * value;
-                    if (height / 2 > cap.position.y) {
+                    if (height / 2 > cap.position.y-.1) {
                         cap.position.y = (height / 2-0.5)>0?(height / 2-0.5):0.5;
                     } else {
                         cap.position.y = Math.max(cap.position.y-.2, 0);
