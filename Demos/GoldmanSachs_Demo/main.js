@@ -11,7 +11,7 @@ info.style.position = 'absolute';
 info.style.top = '10px';
 info.style.width = '100%';
 info.style.textAlign = 'center';
-info.innerHTML = 'enviz vr demo';
+info.innerHTML = 'Goldman Sachs VR Demo';
 container.appendChild(info);
 
 
@@ -43,11 +43,14 @@ THREE.Object3D.prototype.getAttribute = function (name, value) {
 }
 
 
-var camera, scene, renderer, chart3d, d3chart, data;
+var camera, scene, renderer, chart3d, d3chart, data, text;
+text = generateText("Loading....", 40, -1.4, 0, -2.2);
+legend = generateText("Red Axis: Financial Return; Green Axis: Growth Score; Blue Axis: Integrated Score", 40, -1.4, -0.1, -2.2);
 scene = envizVR.scene;
 renderer = envizVR.renderer;
 camera = envizVR.camera;
-
+scene.add(text);
+scene.add(legend);
 
 // var geometry = new THREE.BoxGeometry( 1, 1, 1 );
 // var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
@@ -59,15 +62,20 @@ camera = envizVR.camera;
 var timeStep = -1;
 function transition() {
     timeStep =  timeStep + 1;
-    document.getElementById("bottom").innerHTML = data[0][timeStep][0];
+    // document.getElementById("bottom").innerHTML = data[0][timeStep][0];
+    text.text = "Date: " + data[0][timeStep][0];
     timeStep %= 119;
     d3chart.transition()
-      .duration(400)
+      .ease("easeCircle")
+      .duration(800)
       .attrTween("position.x", function(d, i) {
         return d3.interpolateNumber(2.5*d[timeStep][1], 2.5*d[timeStep+1][1]);
       })
       .attrTween("position.y", function(d, i) {
         return d3.interpolateNumber(2.5*d[timeStep][2], 2.5*d[timeStep+1][2]);
+      })
+      .attrTween("position.y", function(d, i) {
+        return d3.interpolateNumber(2.5*d[timeStep][4], 2.5*d[timeStep+1][4]);
       }).call(endAll, transition);
 }
 
@@ -76,10 +84,11 @@ function addData(data) {
     if (created) return;
     created = 1;
     chart3d = new THREE.Object3D();
-    chart3d.position.x = 1;
+    chart3d.position.z = -2.2;
+    chart3d.position.x = -1.4;
     envizVR.scene.add( chart3d );
 
-    var geometry = new THREE.SphereGeometry( 0.1, 6, 6 );
+    var geometry = new THREE.SphereGeometry( 0.03, 6, 6 );
     
     // use D3 to set up 3D bars
     d3chart = d3.select( chart3d )
@@ -97,6 +106,7 @@ function addData(data) {
         } )
         .attr("position.x", function(d, i) { return 2.5*d[0][1]; })
         .attr("position.y", function(d, i) { return 2.5*d[0][2]; })
+        .attr("position.y", function(d, i) { return 2.5*d[0][4]; })
         .attr("material.color.r", function(d, i) {
                                         return hexToRgb(color(i/120)).r/256;
                                     })
@@ -108,7 +118,6 @@ function addData(data) {
                                     })
 
     transition()
-    console.log("HERE");
 }
 
 
@@ -135,17 +144,16 @@ d3.json("../../Datasets/GoldmanProcessed.json", function(error, d) {
 
 function animate() {
     
-    requestAnimationFrame( animate );
-    
-    // chart3d.rotation.y += 0.01;
-    
+    requestAnimationFrame( animate );    
     renderer.render( scene, camera );
 }
 
 
 animate();
 
-slicesGraphs(slices([[]], [[]])).forEach((gr, i) => {
-    gr.position.z = 3;
+slicesGraphs(slices([[]], [[]])).forEach((gra, i) => {
+    const gr = gra.getPlot();
+    envizVR.renders.push(gra);
+    gr.position.z = i * 2 - 2;
     envizVR.scene.add(gr);
 });
