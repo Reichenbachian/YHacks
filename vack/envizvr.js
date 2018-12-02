@@ -487,7 +487,7 @@ class MagicScatterArray {
         this.graphs.forEach((gra, i) => {
             const gr = gra.getPlot();
             this.renders.push(gra);
-            gr.position.z = i * 2 - 2;
+            gr.position.x = i * 2 - 2;
             this.group.add(gr);
         });
     }
