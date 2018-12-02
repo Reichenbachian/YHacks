@@ -86,10 +86,6 @@ class EnvizVR {
 
         body.appendChild(WEBVR.createButton(renderer));
 
-        this.stats = new Stats();
-        this.stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
-        body.appendChild( this.stats.dom );
-
         this._initGeometry();
 
 
@@ -148,7 +144,6 @@ class EnvizVR {
 
 
     render() {
-        this.stats.begin();
 
         var count = this.line.geometry.drawRange.count;
 
@@ -186,7 +181,6 @@ class EnvizVR {
 
         this.renderer.render(this.scene, this.camera);
 
-        this.stats.end();
     }
 
     onWindowResize() {
@@ -222,6 +216,35 @@ class EnvizVR {
         attributes.color.needsUpdate = true;
 
     }
+
+
+    // /**
+    //  *
+    //  * @param points [number, number, number][]
+    //  */
+    // drawScatterSphere(points) {
+    //     const plot = this._generatePlotArea();
+    //
+    //     const ptShape = new THREE.SphereGeometry(0.02);
+    //     const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
+    //
+    //     for (let [x, y, z] of points) {
+    //         if (x == null || y == null || z == null) {
+    //             continue;
+    //         }
+    //
+    //         let mesh = new THREE.Mesh(ptShape, ptMaterial);
+    //         mesh.position.x = x;
+    //         mesh.position.y = y;
+    //         mesh.position.z = z;
+    //         plot.add(mesh);
+    //         // ptShape.vertices.push(new THREE.Vector3(x, y, z));
+    //
+    //         console.log(mesh);
+    //     }
+    //
+    //     this.scene.add(plot);
+    // }
 }
 
 EnvizVR.vector1 = new THREE.Vector3();
@@ -246,7 +269,7 @@ function generateText(t, scale, x, y, z) {
 }
 
 class ScatterGraph {
-    static _generatePlotArea(xL, yL, zL, labs, scales) {
+    static _generatePlotArea(xL, yL, zL, scales) {
         const plotArea = new THREE.Group();
 
         let gridHelperX = new THREE.GridHelper(xL, 10, 0x111111, 0x111111);
@@ -284,9 +307,6 @@ class ScatterGraph {
         plotArea.add(generateText("" + .5 * scales[2], 12, 0, 0, .5 * zL));
         plotArea.add(generateText("-" + .5 * scales[2], 12, 0, 0, -.5 * zL));
 
-        const axesText = `Red: ${labs[0]}, Green: ${labs[1]}, Blue: ${labs[2]}`;
-        plotArea.add(generateText(axesText, 18, 0, 0.6 * yL, 0));
-
         return plotArea;
     }
 
@@ -314,14 +334,13 @@ class ScatterGraph {
      *
      * @param points [number, number, number][]
      **/
-    constructor(points, xL, yL, zL, labs, visible) {
+    constructor(points, xL, yL, zL) {
         this.xL = xL;
         this.yL = yL;
         this.zL = zL;
-        this.visible = visible || Array(points.length).fill(true);
 
         this.scalingFactors = ScatterGraph.scale3DDataToMaxAbsVal(points, 0.5);
-        const plot = ScatterGraph._generatePlotArea(xL, yL, zL, labs, this.scalingFactors);
+        const plot = ScatterGraph._generatePlotArea(xL, yL, zL, this.scalingFactors);
 
         const magicBoxMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, transparent: true, opacity: 0.4});
         const magicBoxGeom = new THREE.BoxGeometry(xL, yL, zL);
@@ -330,56 +349,31 @@ class ScatterGraph {
         console.log(magicBox);
         this.magicBox = magicBox;
 
-        const ptShape = new THREE.SphereBufferGeometry(0.015, 3, 2);
+        const ptShape = new THREE.SphereGeometry(0.02);
+        const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
 
-        this.points = [];
         for (let [x, y, z] of points) {
             if (x == null || y == null || z == null) {
                 continue;
             }
 
-            const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
             let mesh = new THREE.Mesh(ptShape, ptMaterial);
             mesh.position.x = x;
             mesh.position.y = y;
             mesh.position.z = z;
             plot.add(mesh);
-            this.points.push(mesh);
 
             // console.log(mesh);
         }
 
+        setTimeout(() => {
+            const [left, right] = navigator.getGamepads(); // TODO: handle more than 2 gamepads
+            this.left = left;
+            this.right = right;
+        }, 3000);
+
         // plot.add(plot);
         this.plot = plot;
-    }
-
-    isInBox(point) {
-        const mbVerts = this.magicBox.geometry.vertices;
-        point.x = point[0] / this.scalingFactors[0];
-        point.y = point[1] / this.scalingFactors[1];
-        point.z = point[2] / this.scalingFactors[2];
-        // if (Math.random() < 0.01)
-        //     console.log(mbVerts, point);
-
-        let s;
-        let b;
-
-        s = Math.min.apply(null, mbVerts.map(v => v.x));
-        b = Math.max.apply(null, mbVerts.map(v => v.x));
-        if (point.x < s || b < point.x)
-            return false;
-
-        s = Math.min.apply(null, mbVerts.map(v => v.y));
-        b = Math.max.apply(null, mbVerts.map(v => v.y));
-        if (point.y < s || b < point.y)
-            return false;
-
-        s = Math.min.apply(null, mbVerts.map(v => v.z));
-        b = Math.max.apply(null, mbVerts.map(v => v.z));
-        if (point.z < s || b < point.z)
-            return false;
-
-        return true;
     }
 
     getPlot() {
@@ -426,13 +420,6 @@ class ScatterGraph {
     }
 
     render() {
-        if (!this.left || !this.right) {
-            // TODO don't poll for the gamepad
-            const [left, right] = navigator.getGamepads(); // TODO: handle more than 2 gamepads
-            this.left = left;
-            this.right = right;
-        }
-
         if (this.left && this.left.buttons[3].pressed) {
             const vec = new THREE.Vector3();
             envizVR.controllers.getControllerPosition(1, vec);
@@ -444,89 +431,38 @@ class ScatterGraph {
             envizVR.controllers.getControllerPosition(2, vec);
             this.updateHand(vec);
         }
-
-        this.updateMagicBoxSelected()
-    }
-
-    updateMagicBoxSelected() {
-        this.visible.forEach((v, i) => {
-            const pt = this.points[i];
-            pt.material.color.r = v ? 0.3 : 1.0;
-            pt.material.color.g = v ? 1.0 : 0.3;
-            pt.material.color.b = v ? 0.3 : 0.3;
-        })
     }
 }
 
-class MagicScatterArray {
-    /**
-     *
-     * @param nddata n-dimensional data [number, number, ...][]
-     * @param d3slices 3d slices of the data to take [number, number, number][]
-     */
-    constructor(nddata, d3slices, labs) {
-        this.nddata = nddata;
-        this.d3slices = d3slices;
-        this.visible = Array(this.nddata.length).fill(true);
-
-        const d3datas = d3slices.map(slice => nddata.map(l => [l[slice[0]], l[slice[1]], l[slice[2]]]));
-        const d3labs = d3slices.map(slice => {
-            return [labs[slice[0]], labs[slice[1]], labs[slice[2]]];
-        });
-
-        this.graphs = d3datas.map((data, i) => {
-            const ct = new ScatterGraph(data, 1, 1, 1, d3labs[i], this.visible);
-            let plot = ct.getPlot();
-            plot.position.y = 1;
-            // envizVR.scene.add(plot);
-            return ct;
-        });
-
-        this.renders = [];
-        this.group = new THREE.Group();
-        this.graphs.forEach((gra, i) => {
-            const gr = gra.getPlot();
-            this.renders.push(gra);
-            gr.position.z = i * 2 - 2;
-            this.group.add(gr);
-        });
-    }
-
-    getPlots() {
-        return this.group;
-    }
-
-    render() {
-        // console.log("magic scat render");
-        this.renders.forEach(r => r.render());
-
-        this.updateVisible();
-    }
-
-    updateVisible() {
-        for (let i = 0; i < this.nddata.length; i++) {
-            let l = this.nddata[i];
-            let vis = true;
-            for (let j = 0; j < this.graphs.length; j++) {
-                const slice = this.d3slices[j];
-                const point = [l[slice[0]], l[slice[1]], l[slice[2]]];
-                if (!this.graphs[j].isInBox(point)) {
-                    vis = false;
-                    break;
-                }
-            }
-            this.visible[i] = vis;
-        }
-
-        // console.log(this.visible);
-    }
+/**
+ *
+ * @param nddata n-dimensional data [number, number, ...][]
+ * @param d3slices 3d slices of the data to take [number, number, number][]
+ * @returns [number, number, number][][]
+ */
+function slices(nddata, d3slices) {
+    return d3slices.map(slice => nddata.map(l => [l[slice[0]], l[slice[1]], l[slice[2]]]));
 }
+
+/**
+ *
+ * @param d3datas [number, number, number][][]
+ */
+function slicesGraphs(d3datas) {
+    return d3datas.map(data => {
+        const ct = new ScatterGraph(data, 1, 1, 1);
+        let plot = ct.getPlot();
+        plot.position.y = 1;
+        // envizVR.scene.add(plot);
+        return ct;
+    })
+}
+
 
 class EnvizControllers {
     /**
      *
      * @param renderer
-     * @param scene
      */
     constructor(renderer, scene) {
         this.renderer = renderer;
@@ -560,10 +496,7 @@ class EnvizControllers {
         controller2.userData.matrices = [new THREE.Matrix4(), new THREE.Matrix4()];
         this.scene.add(controller2);
 
-        let loader;
-
-        // left
-        loader = new THREE.OBJLoader();
+        var loader = new THREE.OBJLoader();
         loader.setPath('/vack/models/oculus_cv1_controller_left/');
         loader.load('oculus_cv1_controller_left.obj', function (object) {
 
@@ -592,8 +525,8 @@ class EnvizControllers {
 
         });
 
-        // right
-        loader = new THREE.OBJLoader();
+
+        var loader = new THREE.OBJLoader();
         loader.setPath('/vack/models/oculus_cv1_controller_right/');
         loader.load('oculus_cv1_controller_right.obj', function (object) {
 
