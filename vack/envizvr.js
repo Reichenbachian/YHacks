@@ -393,7 +393,7 @@ class ScatterGraph {
 
         const mbVerts = this.magicBox.geometry.vertices;
         const v = mbVerts.sort((a, b) => (a.distanceTo(handCoords) - b.distanceTo(handCoords)))[0];
-        if (v.distanceTo(handCoords) < 0.02) {
+        if (v.distanceTo(handCoords) < 0.04) {
             // console.log("nearby to a point");
             const vx = v.x;
             const vy = v.y;

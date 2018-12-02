@@ -60,9 +60,14 @@
         const [labs, pairings, data] = diabetesData;
 
         const magicScatArray = new MagicScatterArray(
-            data,
-            pairings.slice(0, 3),
-            labs,
+            data.slice(0, 250),
+            [
+                [3, 5, 4],
+                [8, 7, 6],
+                [7, 3, 4],
+                [0, 2, 1],
+            ],
+            labs, //["Pregnancies", "Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI", "DiabetesPedigreeFunction", "Age", "Outcome"]
         );
         envizVR.renders.push(magicScatArray);
         envizVR.scene.add(magicScatArray.getPlots());
