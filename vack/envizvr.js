@@ -222,35 +222,6 @@ class EnvizVR {
         attributes.color.needsUpdate = true;
 
     }
-
-
-    // /**
-    //  *
-    //  * @param points [number, number, number][]
-    //  */
-    // drawScatterSphere(points) {
-    //     const plot = this._generatePlotArea();
-    //
-    //     const ptShape = new THREE.SphereGeometry(0.02);
-    //     const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
-    //
-    //     for (let [x, y, z] of points) {
-    //         if (x == null || y == null || z == null) {
-    //             continue;
-    //         }
-    //
-    //         let mesh = new THREE.Mesh(ptShape, ptMaterial);
-    //         mesh.position.x = x;
-    //         mesh.position.y = y;
-    //         mesh.position.z = z;
-    //         plot.add(mesh);
-    //         // ptShape.vertices.push(new THREE.Vector3(x, y, z));
-    //
-    //         console.log(mesh);
-    //     }
-    //
-    //     this.scene.add(plot);
-    // }
 }
 
 EnvizVR.vector1 = new THREE.Vector3();
@@ -359,7 +330,7 @@ class ScatterGraph {
         console.log(magicBox);
         this.magicBox = magicBox;
 
-        const ptShape = new THREE.SphereGeometry(0.02);
+        const ptShape = new THREE.SphereBufferGeometry(0.015, 3, 2);
 
         this.points = [];
         for (let [x, y, z] of points) {
@@ -474,6 +445,10 @@ class ScatterGraph {
             this.updateHand(vec);
         }
 
+        this.updateMagicBoxSelected()
+    }
+
+    updateMagicBoxSelected() {
         this.visible.forEach((v, i) => {
             const pt = this.points[i];
             pt.material.color.r = v ? 0.3 : 1.0;
@@ -525,6 +500,10 @@ class MagicScatterArray {
         // console.log("magic scat render");
         this.renders.forEach(r => r.render());
 
+        this.updateVisible();
+    }
+
+    updateVisible() {
         for (let i = 0; i < this.nddata.length; i++) {
             let l = this.nddata[i];
             let vis = true;
