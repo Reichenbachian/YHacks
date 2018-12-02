@@ -269,7 +269,7 @@ function generateText(t, scale, x, y, z) {
 }
 
 class ScatterGraph {
-    static _generatePlotArea(xL, yL, zL, scales) {
+    static _generatePlotArea(xL, yL, zL, labs, scales) {
         const plotArea = new THREE.Group();
 
         let gridHelperX = new THREE.GridHelper(xL, 10, 0x111111, 0x111111);
@@ -307,6 +307,9 @@ class ScatterGraph {
         plotArea.add(generateText("" + .5 * scales[2], 12, 0, 0, .5 * zL));
         plotArea.add(generateText("-" + .5 * scales[2], 12, 0, 0, -.5 * zL));
 
+        const axesText = `Red: ${labs[0]}, Green: ${labs[1]}, Blue: ${labs[2]}`;
+        plotArea.add(generateText(axesText, 18, 0, 0.6 * yL, 0));
+
         return plotArea;
     }
 
@@ -334,14 +337,14 @@ class ScatterGraph {
      *
      * @param points [number, number, number][]
      **/
-    constructor(points, xL, yL, zL, visible) {
+    constructor(points, xL, yL, zL, labs, visible) {
         this.xL = xL;
         this.yL = yL;
         this.zL = zL;
         this.visible = visible;
 
         this.scalingFactors = ScatterGraph.scale3DDataToMaxAbsVal(points, 0.5);
-        const plot = ScatterGraph._generatePlotArea(xL, yL, zL, this.scalingFactors);
+        const plot = ScatterGraph._generatePlotArea(xL, yL, zL, labs, this.scalingFactors);
 
         const magicBoxMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, transparent: true, opacity: 0.4});
         const magicBoxGeom = new THREE.BoxGeometry(xL, yL, zL);
@@ -378,8 +381,8 @@ class ScatterGraph {
         point.x = point[0] / this.scalingFactors[0];
         point.y = point[1] / this.scalingFactors[1];
         point.z = point[2] / this.scalingFactors[2];
-        if (Math.random() < 0.01)
-            console.log(mbVerts, point);
+        // if (Math.random() < 0.01)
+        //     console.log(mbVerts, point);
 
         let s;
         let b;
@@ -480,15 +483,18 @@ class MagicScatterArray {
      * @param nddata n-dimensional data [number, number, ...][]
      * @param d3slices 3d slices of the data to take [number, number, number][]
      */
-    constructor(nddata, d3slices) {
+    constructor(nddata, d3slices, labs) {
         this.nddata = nddata;
         this.d3slices = d3slices;
         this.visible = Array(this.nddata.length).fill(true);
 
         const d3datas = d3slices.map(slice => nddata.map(l => [l[slice[0]], l[slice[1]], l[slice[2]]]));
+        const d3labs = d3slices.map(slice => {
+            return [labs[slice[0]], labs[slice[1]], labs[slice[2]]];
+        });
 
-        this.graphs = d3datas.map(data => {
-            const ct = new ScatterGraph(data, 1, 1, 1, this.visible);
+        this.graphs = d3datas.map((data, i) => {
+            const ct = new ScatterGraph(data, 1, 1, 1, d3labs[i], this.visible);
             let plot = ct.getPlot();
             plot.position.y = 1;
             // envizVR.scene.add(plot);
