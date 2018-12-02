@@ -497,11 +497,11 @@ class EnvizControllers {
         this.scene.add(controller2);
 
         var loader = new THREE.OBJLoader();
-        loader.setPath('models/oculus_cv1_controller_left/');
+        loader.setPath('/vack/models/oculus_cv1_controller_left/');
         loader.load('oculus_cv1_controller_left.obj', function (object) {
 
             var loader = new THREE.TextureLoader();
-            loader.setPath('models/oculus_cv1_controller_left/');
+            loader.setPath('/vack/models/oculus_cv1_controller_left/');
 
             var controller = object.children[0];
             controller.material.map = loader.load('external_controller01_col.png');
@@ -527,11 +527,11 @@ class EnvizControllers {
 
 
         var loader = new THREE.OBJLoader();
-        loader.setPath('models/oculus_cv1_controller_right/');
+        loader.setPath('/vack/models/oculus_cv1_controller_right/');
         loader.load('oculus_cv1_controller_right.obj', function (object) {
 
             var loader = new THREE.TextureLoader();
-            loader.setPath('models/oculus_cv1_controller_right/');
+            loader.setPath('/vack/models/oculus_cv1_controller_right/');
 
             var controller = object.children[0];
             controller.material.map = loader.load('external_controller01_col.png');
