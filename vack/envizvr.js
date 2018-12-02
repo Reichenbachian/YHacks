@@ -287,14 +287,19 @@ class ScatterGraph {
         plotArea.add(yAxis);
         plotArea.add(zAxis);
 
-        plotArea.add(generateText("" + scales[0], 12, .5, 0, 0));
-        plotArea.add(generateText("-" + scales[0], 12, -.5, 0, 0));
+        plotArea.add(generateText("" + .5 * scales[0], 12, .5 * xL, 0, 0));
+        plotArea.add(generateText("-" + .5 * scales[0], 12, -.5 * xL, 0, 0));
 
-        plotArea.add(generateText("" + scales[1], 12, 0, -.5, 0));
-        plotArea.add(generateText("-" + scales[1], 12, 0, -.5, 0));
+        plotArea.add(generateText("" + .5 * scales[1], 12, 0, -.5 * yL, 0));
+        plotArea.add(generateText("-" + .5 * scales[1], 12, 0, -.5 * yL, 0));
 
-        plotArea.add(generateText("" + scales[2], 12, 0, 0, -.5));
-        plotArea.add(generateText("-" + scales[2], 12, 0, 0, .5));
+        plotArea.add(generateText("" + .5 * scales[2], 12, 0, 0, .5 * zL));
+        plotArea.add(generateText("-" + .5 * scales[2], 12, 0, 0, -.5 * zL));
+
+        const magicBoxMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 });
+        const magicBoxGeom = new THREE.BoxGeometry(xL, yL, zL);
+        const magicBox = new THREE.Mesh(magicBoxGeom, magicBoxMaterial);
+        plotArea.add(magicBox);
 
         return plotArea;
     }
@@ -313,7 +318,7 @@ class ScatterGraph {
                 data[i][c] *= maxAbs / maxDataAbs;
             }
 
-            scalingFactors[c] = maxAbs / maxDataAbs;
+            scalingFactors[c] = maxDataAbs / maxAbs;
         }
 
         return scalingFactors;
@@ -351,6 +356,30 @@ class ScatterGraph {
     getPlot() {
         return this.plot;
     }
+}
+
+/**
+ *
+ * @param nddata n-dimensional data [number, number, ...][]
+ * @param d3slices 3d slices of the data to take [number, number, number][]
+ * @returns [number, number, number][][]
+ */
+function slices(nddata, d3slices) {
+    return d3slices.map(slice => nddata.map(l => [l[slice[0]], l[slice[1]], l[slice[2]]]));
+}
+
+/**
+ *
+ * @param d3datas [number, number, number][][]
+ */
+function slicesGraphs(d3datas) {
+    return d3datas.map(data => {
+        const ct = new ScatterGraph(data, 1, 1, 1);
+        let plot = ct.getPlot();
+        plot.position.y = 1;
+        // envizVR.scene.add(plot);
+        return plot;
+    })
 }
 
 
