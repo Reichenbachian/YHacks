@@ -1,3 +1,25 @@
+// LIB INITIALIZATION
+var container;
+
+let envizVR;
+
+container = document.createElement('div');
+document.body.appendChild(container);
+
+const info = document.createElement('div');
+info.style.position = 'absolute';
+info.style.top = '10px';
+info.style.width = '100%';
+info.style.textAlign = 'center';
+info.innerHTML = 'enviz vr demo';
+container.appendChild(info);
+
+
+envizVR = new EnvizVR(container, document.body);
+
+// envizVR.animate();
+
+// OVERWRITE THREE
 // these are, as before, to make D3's .append() and .selectAll() work
 THREE.Object3D.prototype.appendChild = function (c) { this.add(c); return c; };
 THREE.Object3D.prototype.querySelectorAll = function () { return []; };
@@ -11,7 +33,6 @@ THREE.Object3D.prototype.setAttribute = function (name, value) {
     }
     object[chain[chain.length - 1]] = value;
 }
-
 THREE.Object3D.prototype.getAttribute = function (name, value) {
     var chain = name.split('.');
     var object = this;
@@ -21,65 +42,33 @@ THREE.Object3D.prototype.getAttribute = function (name, value) {
     return object;
 }
 
+
 var camera, scene, renderer, chart3d, d3chart, data;
+scene = envizVR.scene;
+renderer = envizVR.renderer;
+camera = envizVR.camera;
 
-init();
-animate();
 
-function init () {
-    // standard THREE stuff, straight from examples
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    // renderer.vr.enabled = true;
-    document.body.appendChild( renderer.domElement );
+// var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+// var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+// var cube = new THREE.Mesh( geometry, material );
+// scene.add( cube );
 
-    camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-    camera.position.z = 500;
-    // camera.position.y = 100;
-    // camera.position.x = 100;
-    
-    scene = new THREE.Scene();
-    
-    var light = new THREE.DirectionalLight( 0xffffff );
-    light.position.set( 0, 0, 1 );
-    scene.add( light );
+// create container for our 3D chart
 
-    // create container for our 3D chart
-
-    d3.json("../../Datasets/GoldmanProcessed.json", function(error, d) {
-        data = d;
-        addData(d);
-    });
-        
-
-}
-function endAll(transition, callback) {
-  var n = 0
-  transition.each(() => ++n)
-    .each('end', () => (!--n && callback.apply(this, arguments)))
-}
 var timeStep = -1;
 function transition() {
     timeStep =  timeStep + 1;
     document.getElementById("bottom").innerHTML = data[0][timeStep][0];
-    // timeStep %= 119;
+    timeStep %= 119;
     d3chart.transition()
-      .duration(1000)
+      .duration(400)
       .attrTween("position.x", function(d, i) {
-        return d3.interpolateNumber(250*d[timeStep][1], 250*d[timeStep+1][1]);
+        return d3.interpolateNumber(2.5*d[timeStep][1], 2.5*d[timeStep+1][1]);
       })
       .attrTween("position.y", function(d, i) {
-        return d3.interpolateNumber(250*d[timeStep][2], 250*d[timeStep+1][2]);
+        return d3.interpolateNumber(2.5*d[timeStep][2], 2.5*d[timeStep+1][2]);
       }).call(endAll, transition);
-}
-
-function hexToRgb(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    } : null;
 }
 
 var created = 0;
@@ -87,10 +76,10 @@ function addData(data) {
     if (created) return;
     created = 1;
     chart3d = new THREE.Object3D();
-    chart3d.rotation.x = 0.6;
-    scene.add( chart3d );
+    chart3d.position.x = 1;
+    envizVR.scene.add( chart3d );
 
-    var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+    var geometry = new THREE.SphereGeometry( 0.1, 6, 6 );
     
     // use D3 to set up 3D bars
     d3chart = d3.select( chart3d )
@@ -102,10 +91,12 @@ function addData(data) {
         .enter().append( function() {
             var material = new THREE.MeshLambertMaterial( {
                  color: 0x4682B4, shading: THREE.FlatShading, vertexColors: THREE.VertexColors } );
-            return new THREE.Mesh( geometry, material );
+            var tmp = new THREE.Mesh( geometry, material );
+            scene.add(tmp)
+            return tmp;
         } )
-        .attr("position.x", function(d, i) { return 250*d[0][1]; })
-        .attr("position.y", function(d, i) { return 250*d[0][2]; })
+        .attr("position.x", function(d, i) { return 2.5*d[0][1]; })
+        .attr("position.y", function(d, i) { return 2.5*d[0][2]; })
         .attr("material.color.r", function(d, i) {
                                         return hexToRgb(color(i/120)).r/256;
                                     })
@@ -117,20 +108,30 @@ function addData(data) {
                                     })
 
     transition()
-
-    // continue with THREE stuff
-    window.addEventListener( 'resize', onWindowResize, false );
-    animate();
+    console.log("HERE");
 }
 
-function onWindowResize() {
-    
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    
+
+// UTILITIES
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
 }
+
+function endAll(transition, callback) {
+  var n = 0
+  transition.each(() => ++n)
+    .each('end', () => (!--n && callback.apply(this, arguments)))
+}
+
+d3.json("../../Datasets/GoldmanProcessed.json", function(error, d) {
+    data = d;
+    addData(d);
+});
 
 function animate() {
     
@@ -142,3 +143,9 @@ function animate() {
 }
 
 
+animate();
+
+slicesGraphs(slices([[]], [[]])).forEach((gr, i) => {
+    gr.position.z = 3;
+    envizVR.scene.add(gr);
+});
