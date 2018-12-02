@@ -86,6 +86,10 @@ class EnvizVR {
 
         body.appendChild(WEBVR.createButton(renderer));
 
+        this.stats = new Stats();
+        this.stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+        body.appendChild( this.stats.dom );
+
         this._initGeometry();
 
 
@@ -144,6 +148,7 @@ class EnvizVR {
 
 
     render() {
+        this.stats.begin();
 
         var count = this.line.geometry.drawRange.count;
 
@@ -181,6 +186,7 @@ class EnvizVR {
 
         this.renderer.render(this.scene, this.camera);
 
+        this.stats.end();
     }
 
     onWindowResize() {

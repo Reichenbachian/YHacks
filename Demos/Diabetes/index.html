@@ -33,6 +33,8 @@
 <script src="../../vack/d3hack.js"></script>
 <script src="../../vack/three-text2d.min.js"></script>
 <script src="../../vack/envizvr.js"></script>
+<script src="//mrdoob.github.io/stats.js/build/stats.min.js"></script>
+
 
 <script>
     let envizVR;
@@ -55,22 +57,12 @@
 
         envizVR = new EnvizVR(container, document.body);
 
-        const scatData = [
-            [0, 0, 0, 1],
-            [1, 1, 1, 0],
-            [1, 1, -1, 0.7],
-            [1, -1, 1, 0.1337],
-            [1, -1, -1, .42],
-            [-1, 1, 1, -.2],
-            [-1, 1, -1, -.75],
-            [-1, -1, 1, -.1],
-            [-1, -1, -1, 4],
-        ];
+        const [labs, pairings, data] = diabetesData;
 
         const magicScatArray = new MagicScatterArray(
-            scatData,
-            [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]],
-            ["A (min)", "B (sec)", "C ($)", "D (BTC)"]
+            data,
+            pairings.slice(0, 3),
+            labs,
         );
         envizVR.renders.push(magicScatArray);
         envizVR.scene.add(magicScatArray.getPlots());
