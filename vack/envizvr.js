@@ -248,6 +248,15 @@ EnvizVR.vector4 = new THREE.Vector3();
 
 EnvizVR.up = new THREE.Vector3(0, 1, 0);
 
+function generateText(t, scale, x, y, z) {
+    let text = new ThreeText2D.SpriteText2D(t, { align: ThreeText2D.textAlign.left, font: '24px Arial', fillStyle: '#ffffff', antialias: true });
+    text.position.x = x;
+    text.position.y = y;
+    text.position.z = z;
+    text.scale.x = text.scale.y = text.scale.z = 0.001 / 12 * scale;
+    return text;
+}
+
 class ScatterGraph {
     static _generatePlotArea(xL, yL, zL, scales) {
         const plotArea = new THREE.Group();
@@ -278,6 +287,15 @@ class ScatterGraph {
         plotArea.add(yAxis);
         plotArea.add(zAxis);
 
+        plotArea.add(generateText("" + scales[0], 12, .5, 0, 0));
+        plotArea.add(generateText("-" + scales[0], 12, -.5, 0, 0));
+
+        plotArea.add(generateText("" + scales[1], 12, 0, -.5, 0));
+        plotArea.add(generateText("-" + scales[1], 12, 0, -.5, 0));
+
+        plotArea.add(generateText("" + scales[2], 12, 0, 0, -.5));
+        plotArea.add(generateText("-" + scales[2], 12, 0, 0, .5));
+
         return plotArea;
     }
 
@@ -306,7 +324,7 @@ class ScatterGraph {
      * @param points [number, number, number][]
      **/
     constructor(points, xL, yL, zL) {
-        this.scalingFactors = ScatterGraph.scale3DDataToMaxAbsVal(data, 0.5);
+        this.scalingFactors = ScatterGraph.scale3DDataToMaxAbsVal(points, 0.5);
         const plot = ScatterGraph._generatePlotArea(xL, yL, zL, this.scalingFactors);
 
         const ptShape = new THREE.SphereGeometry(0.02);
