@@ -72,13 +72,9 @@
             [-1, -1, -1, 4],
         ];
 
-        // const gras = [];
-        slicesGraphs(slices(scatData, [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]])).forEach((gra, i) => {
-            const gr = gra.getPlot();
-            envizVR.renders.push(gra);
-            gr.position.z = i * 2 - 2;
-            envizVR.scene.add(gr);
-        });
+        const magicScatArray = new MagicScatterArray(scatData, [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]]);
+        envizVR.renders.push(magicScatArray);
+        envizVR.scene.add(magicScatArray.getPlots());
 
 
         // create container for our 3D chart

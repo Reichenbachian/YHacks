@@ -334,10 +334,11 @@ class ScatterGraph {
      *
      * @param points [number, number, number][]
      **/
-    constructor(points, xL, yL, zL) {
+    constructor(points, xL, yL, zL, visible) {
         this.xL = xL;
         this.yL = yL;
         this.zL = zL;
+        this.visible = visible;
 
         this.scalingFactors = ScatterGraph.scale3DDataToMaxAbsVal(points, 0.5);
         const plot = ScatterGraph._generatePlotArea(xL, yL, zL, this.scalingFactors);
@@ -350,30 +351,55 @@ class ScatterGraph {
         this.magicBox = magicBox;
 
         const ptShape = new THREE.SphereGeometry(0.02);
-        const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
 
+        this.points = [];
         for (let [x, y, z] of points) {
             if (x == null || y == null || z == null) {
                 continue;
             }
 
+            const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
             let mesh = new THREE.Mesh(ptShape, ptMaterial);
             mesh.position.x = x;
             mesh.position.y = y;
             mesh.position.z = z;
             plot.add(mesh);
+            this.points.push(mesh);
 
             // console.log(mesh);
         }
 
-        setTimeout(() => {
-            const [left, right] = navigator.getGamepads(); // TODO: handle more than 2 gamepads
-            this.left = left;
-            this.right = right;
-        }, 3000);
-
         // plot.add(plot);
         this.plot = plot;
+    }
+
+    isInBox(point) {
+        const mbVerts = this.magicBox.geometry.vertices;
+        point.x = point[0] / this.scalingFactors[0];
+        point.y = point[1] / this.scalingFactors[1];
+        point.z = point[2] / this.scalingFactors[2];
+        if (Math.random() < 0.01)
+            console.log(mbVerts, point);
+
+        let s;
+        let b;
+
+        s = Math.min.apply(null, mbVerts.map(v => v.x));
+        b = Math.max.apply(null, mbVerts.map(v => v.x));
+        if (point.x < s || b < point.x)
+            return false;
+
+        s = Math.min.apply(null, mbVerts.map(v => v.y));
+        b = Math.max.apply(null, mbVerts.map(v => v.y));
+        if (point.y < s || b < point.y)
+            return false;
+
+        s = Math.min.apply(null, mbVerts.map(v => v.z));
+        b = Math.max.apply(null, mbVerts.map(v => v.z));
+        if (point.z < s || b < point.z)
+            return false;
+
+        return true;
     }
 
     getPlot() {
@@ -420,6 +446,13 @@ class ScatterGraph {
     }
 
     render() {
+        if (!this.left || !this.right) {
+            // TODO don't poll for the gamepad
+            const [left, right] = navigator.getGamepads(); // TODO: handle more than 2 gamepads
+            this.left = left;
+            this.right = right;
+        }
+
         if (this.left && this.left.buttons[3].pressed) {
             const vec = new THREE.Vector3();
             envizVR.controllers.getControllerPosition(1, vec);
@@ -431,38 +464,78 @@ class ScatterGraph {
             envizVR.controllers.getControllerPosition(2, vec);
             this.updateHand(vec);
         }
+
+        this.visible.forEach((v, i) => {
+            const pt = this.points[i];
+            pt.material.color.r = v ? 0.3 : 1.0;
+            pt.material.color.g = v ? 1.0 : 0.3;
+            pt.material.color.b = v ? 0.3 : 0.3;
+        })
     }
 }
 
-/**
- *
- * @param nddata n-dimensional data [number, number, ...][]
- * @param d3slices 3d slices of the data to take [number, number, number][]
- * @returns [number, number, number][][]
- */
-function slices(nddata, d3slices) {
-    return d3slices.map(slice => nddata.map(l => [l[slice[0]], l[slice[1]], l[slice[2]]]));
-}
+class MagicScatterArray {
+    /**
+     *
+     * @param nddata n-dimensional data [number, number, ...][]
+     * @param d3slices 3d slices of the data to take [number, number, number][]
+     */
+    constructor(nddata, d3slices) {
+        this.nddata = nddata;
+        this.d3slices = d3slices;
+        this.visible = Array(this.nddata.length).fill(true);
 
-/**
- *
- * @param d3datas [number, number, number][][]
- */
-function slicesGraphs(d3datas) {
-    return d3datas.map(data => {
-        const ct = new ScatterGraph(data, 1, 1, 1);
-        let plot = ct.getPlot();
-        plot.position.y = 1;
-        // envizVR.scene.add(plot);
-        return ct;
-    })
-}
+        const d3datas = d3slices.map(slice => nddata.map(l => [l[slice[0]], l[slice[1]], l[slice[2]]]));
 
+        this.graphs = d3datas.map(data => {
+            const ct = new ScatterGraph(data, 1, 1, 1, this.visible);
+            let plot = ct.getPlot();
+            plot.position.y = 1;
+            // envizVR.scene.add(plot);
+            return ct;
+        });
+
+        this.renders = [];
+        this.group = new THREE.Group();
+        this.graphs.forEach((gra, i) => {
+            const gr = gra.getPlot();
+            this.renders.push(gra);
+            gr.position.z = i * 2 - 2;
+            this.group.add(gr);
+        });
+    }
+
+    getPlots() {
+        return this.group;
+    }
+
+    render() {
+        // console.log("magic scat render");
+        this.renders.forEach(r => r.render());
+
+        for (let i = 0; i < this.nddata.length; i++) {
+            let l = this.nddata[i];
+            let vis = true;
+            for (let j = 0; j < this.graphs.length; j++) {
+                const slice = this.d3slices[j];
+                const point = [l[slice[0]], l[slice[1]], l[slice[2]]];
+                if (!this.graphs[j].isInBox(point)) {
+                    vis = false;
+                    break;
+                }
+            }
+            this.visible[i] = vis;
+        }
+
+        // console.log(this.visible);
+    }
+}
 
 class EnvizControllers {
     /**
      *
      * @param renderer
+     * @param scene
      */
     constructor(renderer, scene) {
         this.renderer = renderer;
