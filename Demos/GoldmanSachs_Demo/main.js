@@ -11,7 +11,7 @@ info.style.position = 'absolute';
 info.style.top = '10px';
 info.style.width = '100%';
 info.style.textAlign = 'center';
-info.innerHTML = 'enviz vr demo';
+info.innerHTML = 'Goldman Sachs VR Demo';
 container.appendChild(info);
 
 
@@ -43,11 +43,14 @@ THREE.Object3D.prototype.getAttribute = function (name, value) {
 }
 
 
-var camera, scene, renderer, chart3d, d3chart, data;
+var camera, scene, renderer, chart3d, d3chart, data, text;
+text = generateText("Loading....", 40, -1.4, 0, -2.2);
+legend = generateText("Red Axis: Financial Return; Green Axis: Growth Score; Blue Axis: Integrated Score", 40, -1.4, -0.1, -2.2);
 scene = envizVR.scene;
 renderer = envizVR.renderer;
 camera = envizVR.camera;
-
+scene.add(text);
+scene.add(legend);
 
 // var geometry = new THREE.BoxGeometry( 1, 1, 1 );
 // var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
@@ -59,7 +62,8 @@ camera = envizVR.camera;
 var timeStep = -1;
 function transition() {
     timeStep =  timeStep + 1;
-    document.getElementById("bottom").innerHTML = data[0][timeStep][0];
+    // document.getElementById("bottom").innerHTML = data[0][timeStep][0];
+    text.text = "Date: " + data[0][timeStep][0];
     timeStep %= 119;
     d3chart.transition()
       .ease("easeCircle")
