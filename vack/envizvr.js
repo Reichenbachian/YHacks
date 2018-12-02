@@ -5,6 +5,7 @@ class EnvizVR {
      * @param body HTMLElement, usually document.body
      */
     constructor(container, body) {
+        this.renders = [];
         const scene = this.scene = new THREE.Scene();
         scene.background = new THREE.Color(0x222222);
 
@@ -152,6 +153,11 @@ class EnvizVR {
 
         this.updateGeometry(count, this.line.geometry.drawRange.count);
 
+        // console.log(this.renders);
+        for (const r of this.renders) {
+            r.render();
+        }
+
         // for (var i = 0; i < 5; i++) {
         //     var x = d3.select(chart3d).selectAll()[0][i]
         //         .material
@@ -249,7 +255,12 @@ EnvizVR.vector4 = new THREE.Vector3();
 EnvizVR.up = new THREE.Vector3(0, 1, 0);
 
 function generateText(t, scale, x, y, z) {
-    let text = new ThreeText2D.SpriteText2D(t, { align: ThreeText2D.textAlign.left, font: '24px Arial', fillStyle: '#ffffff', antialias: true });
+    let text = new ThreeText2D.SpriteText2D(t, {
+        align: ThreeText2D.textAlign.left,
+        font: '24px Arial',
+        fillStyle: '#ffffff',
+        antialias: true
+    });
     text.position.x = x;
     text.position.y = y;
     text.position.z = z;
@@ -296,11 +307,6 @@ class ScatterGraph {
         plotArea.add(generateText("" + .5 * scales[2], 12, 0, 0, .5 * zL));
         plotArea.add(generateText("-" + .5 * scales[2], 12, 0, 0, -.5 * zL));
 
-        const magicBoxMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 });
-        const magicBoxGeom = new THREE.BoxGeometry(xL, yL, zL);
-        const magicBox = new THREE.Mesh(magicBoxGeom, magicBoxMaterial);
-        plotArea.add(magicBox);
-
         return plotArea;
     }
 
@@ -329,8 +335,19 @@ class ScatterGraph {
      * @param points [number, number, number][]
      **/
     constructor(points, xL, yL, zL) {
+        this.xL = xL;
+        this.yL = yL;
+        this.zL = zL;
+
         this.scalingFactors = ScatterGraph.scale3DDataToMaxAbsVal(points, 0.5);
         const plot = ScatterGraph._generatePlotArea(xL, yL, zL, this.scalingFactors);
+
+        const magicBoxMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, transparent: true, opacity: 0.4});
+        const magicBoxGeom = new THREE.BoxGeometry(xL, yL, zL);
+        const magicBox = new THREE.Mesh(magicBoxGeom, magicBoxMaterial);
+        plot.add(magicBox);
+        console.log(magicBox);
+        this.magicBox = magicBox;
 
         const ptShape = new THREE.SphereGeometry(0.02);
         const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
@@ -346,8 +363,14 @@ class ScatterGraph {
             mesh.position.z = z;
             plot.add(mesh);
 
-            console.log(mesh);
+            // console.log(mesh);
         }
+
+        setTimeout(() => {
+            const [left, right] = navigator.getGamepads(); // TODO: handle more than 2 gamepads
+            this.left = left;
+            this.right = right;
+        }, 3000);
 
         // plot.add(plot);
         this.plot = plot;
@@ -355,6 +378,59 @@ class ScatterGraph {
 
     getPlot() {
         return this.plot;
+    }
+
+    updateHand(handCoords) {
+        // console.log("PRESS");
+        //Call once for each set of handCoords. HandCoords are presumed to be absolute, but will be modified buy this function
+        const local = this.plot.worldToLocal(handCoords);
+
+        const mbVerts = this.magicBox.geometry.vertices;
+        const v = mbVerts.sort((a, b) => (a.distanceTo(handCoords) - b.distanceTo(handCoords)))[0];
+        if (v.distanceTo(handCoords) < 0.02) {
+            // console.log("nearby to a point");
+            const vx = v.x;
+            const vy = v.y;
+            const vz = v.z;
+            for (const x of mbVerts) {
+                const threshold = 0.001;
+                if (Math.abs(vx - x.x) < threshold) {
+                    v.x = x.x = handCoords.x;
+                }
+                if (Math.abs(vy - x.y) < threshold) {
+                    v.y = x.y = handCoords.y;
+                }
+                if (Math.abs(vz - x.z) < threshold) {
+                    v.z = x.z = handCoords.z;
+                }
+            }
+
+            this.magicBox.geometry.verticesNeedUpdate = true;
+
+            // console.log(mbVerts)
+        }
+
+        // for (let c = 0; c < 3; c++) {
+        //     for (let mm = 0; mm < 2; mm++) {
+        //         if (Math.abs(boxCoords[c][mm] - h1[c]) < .05) {//This is mindistance to grab
+        //             boxCoords[c][mm] = h1[c];
+        //         }
+        //     }
+        // }
+    }
+
+    render() {
+        if (this.left && this.left.buttons[3].pressed) {
+            const vec = new THREE.Vector3();
+            envizVR.controllers.getControllerPosition(1, vec);
+            this.updateHand(vec);
+        }
+
+        if (this.right && this.right.buttons[3].pressed) {
+            const vec = new THREE.Vector3();
+            envizVR.controllers.getControllerPosition(2, vec);
+            this.updateHand(vec);
+        }
     }
 }
 
@@ -378,7 +454,7 @@ function slicesGraphs(d3datas) {
         let plot = ct.getPlot();
         plot.position.y = 1;
         // envizVR.scene.add(plot);
-        return plot;
+        return ct;
     })
 }
 
