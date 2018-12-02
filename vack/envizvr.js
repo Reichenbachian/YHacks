@@ -91,37 +91,6 @@ class EnvizVR {
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
     }
 
-    _generatePlotArea() {
-        const plotArea = new THREE.Group();
-
-        let gridHelperX = new THREE.GridHelper(20, 40, 0x111111, 0x111111);
-        let gridHelperY = new THREE.GridHelper(20, 40, 0x111111, 0x111111);
-        let gridHelperZ = new THREE.GridHelper(20, 40, 0x111111, 0x111111);
-        gridHelperZ.rotation.x = Math.PI / 2;
-        gridHelperY.rotation.z = Math.PI / 2;
-        plotArea.add(gridHelperX);
-        plotArea.add(gridHelperY);
-        plotArea.add(gridHelperZ);
-
-        const xAxisMaterial = new THREE.MeshStandardMaterial({color: 0xff0000});
-        const yAxisMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
-        const zAxisMaterial = new THREE.MeshStandardMaterial({color: 0x0000ff});
-
-        const axisGeom = new THREE.CylinderGeometry(0.01, 0.01, 4, 4, 1, true);
-
-        const xAxis = new THREE.Mesh(axisGeom, xAxisMaterial);
-        xAxis.rotation.z = Math.PI / 2;
-        const yAxis = new THREE.Mesh(axisGeom, yAxisMaterial);
-        const zAxis = new THREE.Mesh(axisGeom, zAxisMaterial);
-        zAxis.rotation.x = Math.PI / 2;
-
-        plotArea.add(xAxis);
-        plotArea.add(yAxis);
-        plotArea.add(zAxis);
-
-        return plotArea;
-    }
-
     _initGeometry() {
         var geometry = new THREE.BufferGeometry();
 
@@ -243,12 +212,102 @@ class EnvizVR {
     }
 
 
+    // /**
+    //  *
+    //  * @param points [number, number, number][]
+    //  */
+    // drawScatterSphere(points) {
+    //     const plot = this._generatePlotArea();
+    //
+    //     const ptShape = new THREE.SphereGeometry(0.02);
+    //     const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
+    //
+    //     for (let [x, y, z] of points) {
+    //         if (x == null || y == null || z == null) {
+    //             continue;
+    //         }
+    //
+    //         let mesh = new THREE.Mesh(ptShape, ptMaterial);
+    //         mesh.position.x = x;
+    //         mesh.position.y = y;
+    //         mesh.position.z = z;
+    //         plot.add(mesh);
+    //         // ptShape.vertices.push(new THREE.Vector3(x, y, z));
+    //
+    //         console.log(mesh);
+    //     }
+    //
+    //     this.scene.add(plot);
+    // }
+}
+
+EnvizVR.vector1 = new THREE.Vector3();
+EnvizVR.vector2 = new THREE.Vector3();
+EnvizVR.vector3 = new THREE.Vector3();
+EnvizVR.vector4 = new THREE.Vector3();
+
+EnvizVR.up = new THREE.Vector3(0, 1, 0);
+
+class ScatterGraph {
+    static _generatePlotArea(xL, yL, zL, scales) {
+        const plotArea = new THREE.Group();
+
+        let gridHelperX = new THREE.GridHelper(xL, 10, 0x111111, 0x111111);
+        let gridHelperY = new THREE.GridHelper(yL, 10, 0x111111, 0x111111);
+        let gridHelperZ = new THREE.GridHelper(zL, 10, 0x111111, 0x111111);
+        gridHelperZ.rotation.x = Math.PI / 2;
+        gridHelperY.rotation.z = Math.PI / 2;
+
+        plotArea.add(gridHelperX);
+        plotArea.add(gridHelperY);
+        plotArea.add(gridHelperZ);
+
+        const xAxisMaterial = new THREE.MeshStandardMaterial({color: 0xff0000});
+        const yAxisMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
+        const zAxisMaterial = new THREE.MeshStandardMaterial({color: 0x0000ff});
+
+        // const axisGeom = new THREE.CylinderGeometry(0.01, 0.01, xL, 4, 1, true);
+
+        const xAxis = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, xL, 4, 1, true), xAxisMaterial);
+        xAxis.rotation.z = Math.PI / 2;
+        const yAxis = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, yL, 4, 1, true), yAxisMaterial);
+        const zAxis = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, zL, 4, 1, true), zAxisMaterial);
+        zAxis.rotation.x = Math.PI / 2;
+
+        plotArea.add(xAxis);
+        plotArea.add(yAxis);
+        plotArea.add(zAxis);
+
+        return plotArea;
+    }
+
+    static scale3DDataToMaxAbsVal(data, maxAbs) {
+        const scalingFactors = [];
+        for (let c = 0; c < 3; c++) {
+            let maxDataAbs = 0;
+            for (let i = 0; i < data.length; i++) {
+                if (Math.abs(data[i][c]) > maxDataAbs) {
+                    maxDataAbs = Math.abs(data[i][c]);
+                }
+            }
+
+            for (let i = 0; i < data.length; i++) {
+                data[i][c] *= maxAbs / maxDataAbs;
+            }
+
+            scalingFactors[c] = maxAbs / maxDataAbs;
+        }
+
+        return scalingFactors;
+    }
+
     /**
      *
      * @param points [number, number, number][]
-     */
-    drawScatterSphere(points) {
-        const plot = this._generatePlotArea();
+     **/
+    constructor(points, xL, yL, zL) {
+        this.scalingFactors = ScatterGraph.scale3DDataToMaxAbsVal(data, 0.5);
+        const plot = ScatterGraph._generatePlotArea(xL, yL, zL, this.scalingFactors);
 
         const ptShape = new THREE.SphereGeometry(0.02);
         const ptMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
@@ -263,21 +322,18 @@ class EnvizVR {
             mesh.position.y = y;
             mesh.position.z = z;
             plot.add(mesh);
-            // ptShape.vertices.push(new THREE.Vector3(x, y, z));
 
             console.log(mesh);
         }
 
-        this.scene.add(plot);
+        // plot.add(plot);
+        this.plot = plot;
+    }
+
+    getPlot() {
+        return this.plot;
     }
 }
-
-EnvizVR.vector1 = new THREE.Vector3();
-EnvizVR.vector2 = new THREE.Vector3();
-EnvizVR.vector3 = new THREE.Vector3();
-EnvizVR.vector4 = new THREE.Vector3();
-
-EnvizVR.up = new THREE.Vector3(0, 1, 0);
 
 
 class EnvizControllers {
