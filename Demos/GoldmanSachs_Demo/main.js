@@ -69,6 +69,9 @@ function transition() {
       })
       .attrTween("position.y", function(d, i) {
         return d3.interpolateNumber(2.5*d[timeStep][2], 2.5*d[timeStep+1][2]);
+      })
+      .attrTween("position.y", function(d, i) {
+        return d3.interpolateNumber(2.5*d[timeStep][4], 2.5*d[timeStep+1][4]);
       }).call(endAll, transition);
 }
 
@@ -99,6 +102,7 @@ function addData(data) {
         } )
         .attr("position.x", function(d, i) { return 2.5*d[0][1]; })
         .attr("position.y", function(d, i) { return 2.5*d[0][2]; })
+        .attr("position.y", function(d, i) { return 2.5*d[0][4]; })
         .attr("material.color.r", function(d, i) {
                                         return hexToRgb(color(i/120)).r/256;
                                     })
