@@ -533,4 +533,17 @@ class EnvizControllers {
         return array;
 
     }
+
+    /**
+     * Gets controller's coords
+     * @param controllerID 1 or 2, corresponding to left and right controolers
+     * @param vec fills this Vector3 with the world position
+     */
+    getControllerPosition(controllerID, vec) {
+        const con = controllerID === 1 ? this.controller1 : this.controller2;
+
+        con.getObjectByName('pivot').getWorldPosition(vec);
+    }
 }
+
+
